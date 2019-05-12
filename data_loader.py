@@ -18,20 +18,28 @@ class Dataset(data.Dataset):
         """Returns one data pair (source and target)."""
         src_seq = self.src_seqs[index]
         trg_seq = self.trg_seqs[index]
-        src_seq = self.preprocess(src_seq, self.src_word2id, trg=False)
+        target  = self.trg_seqs[index]
+
+        src_seq = self.preprocess(src_seq, self.src_word2id, src=True)
         trg_seq = self.preprocess(trg_seq, self.trg_word2id)
-        return src_seq, trg_seq
+        target  = self.preprocess(target,  self.trg_word2id, trg=True)
+        return src_seq, trg_seq, target
 
     def __len__(self):
         return self.num_total_seqs
 
-    def preprocess(self, sequence, word2id, trg=True):
+    def preprocess(self, sequence, word2id, src=False, trg=False):
         """Converts words to ids."""
         tokens = nltk.tokenize.word_tokenize(sequence.lower())
         sequence = []
-        sequence.append(word2id['<start>'])
-        sequence.extend([word2id[token] for token in tokens if token in word2id])
-        sequence.append(word2id['<end>'])
+        if not src and not trg:
+            sequence.append(word2id['<start>'])
+
+        sequence.extend([word2id[token] if token in word2id else word2id['<unk>'] for token in tokens])
+
+        if not src and trg:
+            sequence.append(word2id['<end>'])
+
         sequence = torch.Tensor(sequence)
         return sequence
 
@@ -47,12 +55,15 @@ def collate_fn(data):
         data: list of tuple (src_seq, trg_seq).
             - src_seq: torch tensor of shape (?); variable length.
             - trg_seq: torch tensor of shape (?); variable length.
+            - target : torch tensor of shape (?); variable length.
 
     Returns:
         src_seqs: torch tensor of shape (batch_size, padded_length).
         src_lengths: list of length (batch_size); valid length for each padded source sequence.
         trg_seqs: torch tensor of shape (batch_size, padded_length).
         trg_lengths: list of length (batch_size); valid length for each padded target sequence.
+        target  : torch tensor of shape (batch_size, padded_length).
+        target_lengths: list of length (batch_size); valid length for each padded target output words of model.
     """
     def merge(sequences):
         lengths = [len(seq) for seq in sequences]
@@ -66,13 +77,14 @@ def collate_fn(data):
     data.sort(key=lambda x: len(x[0]), reverse=True)
 
     # seperate source and target sequences
-    src_seqs, trg_seqs = zip(*data)
+    src_seqs, trg_seqs, target = zip(*data)
 
     # merge sequences (from tuple of 1D tensor to 2D tensor)
-    src_seqs, src_lengths = merge(src_seqs)
-    trg_seqs, trg_lengths = merge(trg_seqs)
+    src_seqs,  src_lengths = merge(src_seqs)
+    trg_seqs,  trg_lengths = merge(trg_seqs)
+    target, target_lengths = merge(target)
 
-    return src_seqs, src_lengths, trg_seqs, trg_lengths
+    return src_seqs, src_lengths, trg_seqs, trg_lengths, target, target_lengths
 
 
 def get_loader(src_path, trg_path, src_word2id, trg_word2id, batch_size=100):
@@ -92,7 +104,7 @@ def get_loader(src_path, trg_path, src_word2id, trg_word2id, batch_size=100):
     dataset = Dataset(src_path, trg_path, src_word2id, trg_word2id)
 
     # data loader for custome dataset
-    # this will return (src_seqs, src_lengths, trg_seqs, trg_lengths) for each iteration
+    # this will return (src_seqs, src_lengths, trg_seqs, trg_lengths, target, target_lengths) for each iteration
     # please see collate_fn for details
     data_loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=batch_size,
