@@ -8,8 +8,8 @@ class Dataset(data.Dataset):
     """Custom data.Dataset compatible with data.DataLoader."""
     def __init__(self, src_path, trg_path, src_word2id, trg_word2id):
         """Reads source and target sequences from txt files."""
-        self.src_seqs = open(src_path).readlines()
-        self.trg_seqs = open(trg_path).readlines()
+        self.src_seqs = open(src_path, 'w', encoding='utf8').readlines()
+        self.trg_seqs = open(trg_path, 'w', encoding='utf8').readlines()
         self.num_total_seqs = len(self.src_seqs)
         self.src_word2id = src_word2id
         self.trg_word2id = trg_word2id
