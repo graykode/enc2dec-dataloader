@@ -6,13 +6,15 @@ import torch.utils.data as data
 
 class Dataset(data.Dataset):
     """Custom data.Dataset compatible with data.DataLoader."""
-    def __init__(self, src_path, trg_path, src_word2id, trg_word2id):
+    def __init__(self, src_path, trg_path, src_word2id, trg_word2id, src_max, trg_max):
         """Reads source and target sequences from txt files."""
         self.src_seqs = open(src_path, 'w', encoding='utf8').readlines()
         self.trg_seqs = open(trg_path, 'w', encoding='utf8').readlines()
         self.num_total_seqs = len(self.src_seqs)
         self.src_word2id = src_word2id
         self.trg_word2id = trg_word2id
+        self.src_max = src_max
+        self.trg_max = trg_max
 
     def __getitem__(self, index):
         """Returns one data pair (source and target)."""
@@ -23,7 +25,7 @@ class Dataset(data.Dataset):
         src_seq = self.preprocess(src_seq, self.src_word2id, src=True)
         trg_seq = self.preprocess(trg_seq, self.trg_word2id)
         target  = self.preprocess(target,  self.trg_word2id, trg=True)
-        return src_seq, trg_seq, target
+        return src_seq[:self.src_max], trg_seq[:self.trg_max], target[:self.trg_max]
 
     def __len__(self):
         return self.num_total_seqs
@@ -87,7 +89,7 @@ def collate_fn(data):
     return src_seqs, src_lengths, trg_seqs, trg_lengths, target, target_lengths
 
 
-def get_loader(src_path, trg_path, src_word2id, trg_word2id, batch_size=100):
+def get_loader(src_path, trg_path, src_word2id, trg_word2id, src_max, trg_max, batch_size=100):
     """Returns data loader for custom dataset.
 
     Args:
@@ -95,13 +97,15 @@ def get_loader(src_path, trg_path, src_word2id, trg_word2id, batch_size=100):
         trg_path: txt file path for target domain.
         src_word2id: word-to-id dictionary (source domain).
         trg_word2id: word-to-id dictionary (target domain).
+        src_max : maximum length source domain
+        trg_max : maximum length target domain
         batch_size: mini-batch size.
 
     Returns:
         data_loader: data loader for custom dataset.
     """
     # build a custom dataset
-    dataset = Dataset(src_path, trg_path, src_word2id, trg_word2id)
+    dataset = Dataset(src_path, trg_path, src_word2id, trg_word2id, src_max, trg_max)
 
     # data loader for custome dataset
     # this will return (src_seqs, src_lengths, trg_seqs, trg_lengths, target, target_lengths) for each iteration
