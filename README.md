@@ -52,6 +52,14 @@ sequence.extend([word2id[token] if token in word2id else word2id['<unk>'] for to
 
 
 
+3. Add `trg_max`, `src_max` to avoid cuda memory leak.
+
+- `src_max` : maximum length source domain.
+- `trg_max` : maximum length target domain.
+
+This can avoid memory leak when getting high dimension of input sequence length. 
+
+
 <br>
 
 
