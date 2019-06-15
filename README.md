@@ -75,8 +75,8 @@ This can avoid memory leak when getting high dimension of input sequence length.
 
 #### 1. Clone the repository
 ```bash
-$ git clone https://github.com/graykode/seq2seq-dataloader.git
-$ cd seq2seq-dataloader
+$ git clone https://github.com/graykode/enc2dec-dataloader.git
+$ cd enc2dec-dataloader
 ```
 
 #### 2. Download nltk tokenizer
@@ -94,5 +94,5 @@ $ python build_vocab.py
 ```
 
 #### 4. Check DataLoader
-For usage, please see [example.ipynb](https://github.com/graykode/seq2seq-dataloader/blob/master/example.ipynb).
+For usage, please see [example.ipynb](https://github.com/graykode/enc2dec-dataloader/blob/master/example.ipynb).
 
