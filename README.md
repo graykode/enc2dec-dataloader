@@ -1,4 +1,4 @@
-# DataLoader for Seq2seq
+# DataLoader for Encoder to Decoder Model
 Efficient data loader for text dataset using [torch.utils.data.Dataset](https://github.com/yunjey/seq2seq-dataloader/blob/master/data_loader.py#L7-L36), [collate_fn](https://github.com/yunjey/seq2seq-dataloader/blob/master/data_loader.py#L39-L75) and [torch.utils.data.DataLoader](https://github.com/yunjey/seq2seq-dataloader/blob/master/data_loader.py#L97-L100).
 
 
